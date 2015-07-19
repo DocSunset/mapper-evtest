@@ -954,6 +954,32 @@ static inline const char* propname(unsigned int prop)
 }
 #endif
 
+static int get_state(int fd, unsigned int type, unsigned long *array, size_t size)
+{
+	int rc;
+
+	switch(type) {
+	case EV_LED:
+		rc = ioctl(fd, EVIOCGLED(size), array);
+		break;
+	case EV_SND:
+		rc = ioctl(fd, EVIOCGSND(size), array);
+		break;
+	case EV_SW:
+		rc = ioctl(fd, EVIOCGSW(size), array);
+		break;
+	case EV_KEY:
+		/* intentionally not printing the value for EV_KEY, let the
+		 * repeat handle this */
+	default:
+		return 1;
+	}
+	if (rc == -1)
+		return 1;
+
+	return 0;
+}
+
 /**
  * Print static device information (no events). This information includes
  * version numbers, device name and all bits supported by this device.
@@ -968,10 +994,13 @@ static int print_device_info(int fd)
 	unsigned short id[4];
 	char name[256] = "Unknown";
 	unsigned long bit[EV_MAX][NBITS(KEY_MAX)];
+	unsigned long state[KEY_CNT] = {0};
 #ifdef INPUT_PROP_SEMI_MT
 	unsigned int prop;
 	unsigned long propbits[INPUT_PROP_MAX];
 #endif
+	int stateval;
+	int have_state;
 
 	if (ioctl(fd, EVIOCGVERSION, &version)) {
 		perror("evtest: can't get version");
@@ -994,12 +1023,20 @@ static int print_device_info(int fd)
 
 	for (type = 0; type < EV_MAX; type++) {
 		if (test_bit(type, bit[0]) && type != EV_REP) {
+			have_state = (get_state(fd, type, state, sizeof(state)) == 0);
+
 			printf("  Event type %d (%s)\n", type, typename(type));
 			if (type == EV_SYN) continue;
 			ioctl(fd, EVIOCGBIT(type, KEY_MAX), bit[type]);
 			for (code = 0; code < KEY_MAX; code++)
 				if (test_bit(code, bit[type])) {
-					printf("    Event code %d (%s)\n", code, codename(type, code));
+					if (have_state) {
+						stateval = test_bit(code, state);
+						printf("    Event code %d (%s) state %d\n",
+						       code, codename(type, code), stateval);
+					} else {
+						printf("    Event code %d (%s)\n", code, codename(type, code));
+					}
 					if (type == EV_ABS)
 						print_absdata(fd, code);
 				}
