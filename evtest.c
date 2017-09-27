@@ -867,7 +867,7 @@ static int is_event_device(const struct dirent *dir) {
 static char* scan_devices(void)
 {
 	struct dirent **namelist;
-	int i, ndev, devnum;
+	int i, ndev, devnum, match;
 	char *filename;
 	int max_device = 0;
 
@@ -893,22 +893,23 @@ static char* scan_devices(void)
 		fprintf(stderr, "%s:	%s\n", fname, name);
 		close(fd);
 
-		sscanf(namelist[i]->d_name, "event%d", &devnum);
-		if (devnum > max_device)
+		match = sscanf(namelist[i]->d_name, "event%d", &devnum);
+		if (match >= 1 && devnum > max_device)
 			max_device = devnum;
 
 		free(namelist[i]);
 	}
 
 	fprintf(stderr, "Select the device event number [0-%d]: ", max_device);
-	scanf("%d", &devnum);
 
-	if (devnum > max_device || devnum < 0)
+	match = scanf("%d", &devnum);
+	if (match < 1 || devnum > max_device || devnum < 0)
 		return NULL;
 
-	asprintf(&filename, "%s/%s%d",
-		 DEV_INPUT_EVENT, EVENT_DEV_NAME,
-		 devnum);
+	if (asprintf(&filename, "%s/%s%d",
+		     DEV_INPUT_EVENT, EVENT_DEV_NAME,
+		     devnum) < 0)
+		return NULL;
 
 	return filename;
 }
