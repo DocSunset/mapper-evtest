@@ -778,6 +778,9 @@ static const char * const switches[SW_MAX + 1] = {
 #ifdef SW_MUTE_DEVICE
 	NAME_ELEMENT(SW_MUTE_DEVICE),
 #endif
+#ifdef SW_PEN_INSERTED
+	NAME_ELEMENT(SW_PEN_INSERTED),
+#endif
 };
 
 static const char * const force[FF_MAX + 1] = {
