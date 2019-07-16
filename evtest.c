@@ -652,6 +652,10 @@ static const char * const relatives[REL_MAX + 1] = {
 	NAME_ELEMENT(REL_HWHEEL),
 	NAME_ELEMENT(REL_DIAL),			NAME_ELEMENT(REL_WHEEL),
 	NAME_ELEMENT(REL_MISC),
+#ifdef REL_WHEEL_HI_RES
+	NAME_ELEMENT(REL_WHEEL_HI_RES),
+	NAME_ELEMENT(REL_HWHEEL_HI_RES),
+#endif
 };
 
 static const char * const absolutes[ABS_MAX + 1] = {
