@@ -60,6 +60,7 @@
 #include <sys/time.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <limits.h> /* PATH_MAX */
 
 #define BITS_PER_LONG (sizeof(long) * 8)
 #define NBITS(x) ((((x)-1)/BITS_PER_LONG)+1)
