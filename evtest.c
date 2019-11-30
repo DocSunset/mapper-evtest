@@ -62,6 +62,11 @@
 #include <unistd.h>
 #include <limits.h> /* PATH_MAX */
 
+#ifndef input_event_sec
+#define input_event_sec time.tv_sec
+#define input_event_usec time.tv_usec
+#endif
+
 #define BITS_PER_LONG (sizeof(long) * 8)
 #define NBITS(x) ((((x)-1)/BITS_PER_LONG)+1)
 #define OFF(x)  ((x)%BITS_PER_LONG)
@@ -1141,7 +1146,7 @@ static int print_events(int fd)
 			type = ev[i].type;
 			code = ev[i].code;
 
-			printf("Event: time %ld.%06ld, ", ev[i].time.tv_sec, ev[i].time.tv_usec);
+			printf("Event: time %ld.%06ld, ", ev[i].input_event_sec, ev[i].input_event_usec);
 
 			if (type == EV_SYN) {
 				if (code == SYN_MT_REPORT)
