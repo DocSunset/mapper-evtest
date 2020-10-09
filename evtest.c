@@ -60,7 +60,6 @@
 #include <sys/time.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include <limits.h> /* PATH_MAX */
 
 #ifndef input_event_sec
 #define input_event_sec time.tv_sec
