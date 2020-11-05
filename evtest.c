@@ -1248,8 +1248,10 @@ static int do_capture(const char *device, int grab_flag)
 		printf("***********************************************\n");
 	}
 
-	signal(SIGINT, interrupt_handler);
-	signal(SIGTERM, interrupt_handler);
+	if (grab_flag) {
+		signal(SIGINT, interrupt_handler);
+		signal(SIGTERM, interrupt_handler);
+	}
 
 	free(filename);
 
