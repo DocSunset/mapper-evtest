@@ -9,7 +9,6 @@ $> make
 $> make install
 
 Adjust the prefix as necessary, on most distributions /usr is fine.
-evtest itself has no requirements other than the C compiler, if you need
-evtest-capture, install the libxml-2.0 development files.
+evtest itself has no requirements other than the C compiler.
 
 
