@@ -7,12 +7,6 @@ AC_PROG_CC
 AC_PROG_INSTALL
 PKG_PROG_PKG_CONFIG
 
-AC_PATH_PROG(XSLTPROC, [xsltproc])
-AM_CONDITIONAL([HAVE_XSLTPROC], [test "x$XSLTPROC" != "x"])
-if test "x$XSLTPROC" = "x"; then
-	AC_MSG_WARN([xsltproc not found, needed to generate devices.])
-fi
-
 AC_ARG_VAR([XMLTO], [Path to xmlto command])
 AC_PATH_PROG([XMLTO], [xmlto])
 AC_ARG_VAR([ASCIIDOC], [Path to asciidoc command])
