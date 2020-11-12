@@ -5,7 +5,6 @@ AM_INIT_AUTOMAKE([foreign dist-bzip2])
 AC_CONFIG_HEADERS(config.h)
 AC_PROG_CC
 AC_PROG_INSTALL
-PKG_PROG_PKG_CONFIG
 
 AC_ARG_VAR([XMLTO], [Path to xmlto command])
 AC_PATH_PROG([XMLTO], [xmlto])
