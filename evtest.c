@@ -888,7 +888,7 @@ static char* scan_devices(void)
 
 	for (i = 0; i < ndev; i++)
 	{
-		char fname[PATH_MAX];
+		char fname[4096];
 		int fd = -1;
 		char name[256] = "???";
 
