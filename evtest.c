@@ -110,6 +110,7 @@ static const struct query_mode {
 };
 
 static int grab_flag = 0;
+static char* progname;
 static volatile sig_atomic_t stop = 0;
 
 static void interrupt_handler(int sig)
@@ -928,7 +929,7 @@ static int version(void)
 #ifndef PACKAGE_VERSION
 #define PACKAGE_VERSION "<version undefined>"
 #endif
-	printf("%s %s\n", program_invocation_short_name, PACKAGE_VERSION);
+	printf("%s %s\n", progname, PACKAGE_VERSION);
 	return EXIT_SUCCESS;
 }
 
@@ -940,12 +941,11 @@ static int usage(void)
 {
 	printf("USAGE:\n");
 	printf(" Capture mode:\n");
-	printf("   %s [--grab] /dev/input/eventX\n", program_invocation_short_name);
+	printf("   %s [--grab] /dev/input/eventX\n", progname);
 	printf("     --grab  grab the device for exclusive access\n");
 	printf("\n");
 	printf(" Query mode: (check exit code)\n");
-	printf("   %s --query /dev/input/eventX <type> <value>\n",
-		program_invocation_short_name);
+	printf("   %s --query /dev/input/eventX <type> <value>\n", progname);
 
 	printf("\n");
 	printf("<type> is one of: EV_KEY, EV_SW, EV_LED, EV_SND\n");
@@ -1346,6 +1346,8 @@ int main (int argc, char **argv)
 	const char *keyname;
 	const char *event_type;
 	enum evtest_mode mode = MODE_CAPTURE;
+
+	progname = argv[0];
 
 	while (1) {
 		int option_index = 0;
