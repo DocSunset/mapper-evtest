@@ -881,7 +881,7 @@ static char* scan_devices(void)
 	char *filename;
 	int max_device = 0;
 
-	ndev = scandir(DEV_INPUT_EVENT, &namelist, is_event_device, versionsort);
+	ndev = scandir(DEV_INPUT_EVENT, &namelist, is_event_device, alphasort);
 	if (ndev <= 0)
 		return NULL;
 
