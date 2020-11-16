@@ -43,7 +43,6 @@
 #include <config.h>
 #endif
 
-#include <linux/version.h>
 #include <linux/input.h>
 
 #include <string.h>
