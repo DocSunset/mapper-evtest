@@ -48,7 +48,6 @@
 #include <string.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <dirent.h>
 #include <errno.h>
@@ -58,7 +57,6 @@
 #include <limits.h>
 #include <sys/time.h>
 #include <sys/types.h>
-#include <unistd.h>
 
 #ifndef input_event_sec
 #define input_event_sec time.tv_sec
