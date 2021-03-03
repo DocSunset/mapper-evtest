@@ -17,5 +17,5 @@ For more information, see the evtest(1) man page.
 Development
 ==========
 
-Please send patches to input-tools@lists.freedesktop.org
-http://lists.freedesktop.org/mailman/listinfo/input-tools
+Please send patches as merge requests on the GitLab repository:
+https://gitlab.freedesktop.org/libevdev/evtest
