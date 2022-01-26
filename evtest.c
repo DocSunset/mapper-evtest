@@ -55,8 +55,81 @@
 #include <ctype.h>
 #include <signal.h>
 #include <limits.h>
+#include <poll.h>
 #include <sys/time.h>
 #include <sys/types.h>
+
+#include <mapper/mapper.h>
+
+struct dict_entry
+{
+    struct dict_entry * next;
+    unsigned int type, code;
+    mpr_sig signal;
+} ***dict;
+
+mpr_dev dev;
+unsigned int slot;
+
+#define BUCKETS 16
+
+struct dict_entry * dict_add_or_get(unsigned int type, unsigned int code)
+{
+	struct dict_entry * entry;
+	unsigned int code_bucket = code % BUCKETS;
+
+	/* initialize dictionary */
+	if (dict == NULL) {
+		dict = (struct dict_entry***)calloc(EV_CNT, sizeof(struct dict_entry**));
+	}
+
+	/* make new type buckets */
+	if (dict[type] == NULL) {
+		dict[type] = (struct dict_entry**)calloc(BUCKETS, sizeof(struct dict_entry*));
+	} 
+
+	/* initialize new code bucket list */
+	if (dict[type][code_bucket] == NULL) {
+		dict[type][code_bucket] = (struct dict_entry*)malloc(sizeof(struct dict_entry));
+		entry = dict[type][code_bucket];
+	} else { /* scan for last element in list */
+		entry = dict[type][code_bucket];
+		while (1) {
+			/* return if a signal already exists */
+			if (entry->code == code) return entry;
+			if (entry->next == NULL) break;
+			entry = entry->next;
+		}
+		/* make new entry */
+		entry->next = (struct dict_entry*)malloc(sizeof(struct dict_entry));
+		entry = entry->next;
+	}
+
+	entry->next = NULL;
+	entry->type = type;
+	entry->code = code;
+	entry->signal = NULL;
+	return entry;
+}
+
+static inline const char* typename(unsigned int);
+static inline const char* codename(unsigned int, unsigned int);
+
+void new_signal(struct dict_entry * entry, unsigned int type, unsigned int code, int * min, int * max)
+{
+	char * name;
+	const char * tn = typename(type);
+	const char * cn = codename(type, code);
+	int multitouch = ABS_MT_TOUCH_MAJOR <= code && code <= ABS_MT_TOOL_Y;
+	int instances = multitouch ? 16 : 1;
+	unsigned int type_length = strlen(tn);
+	unsigned int code_length = strlen(cn);
+	unsigned int name_length = type_length + code_length + 2;
+	name = (char*)malloc(name_length);
+	snprintf(name, name_length, "%s/%s", tn, cn);
+	entry->signal = mpr_sig_new(dev, MPR_DIR_OUT, name, 1, MPR_INT32, 0,min,max,&instances,0,0);
+	free(name);
+}
 
 #ifndef input_event_sec
 #define input_event_sec time.tv_sec
@@ -958,17 +1031,21 @@ static int usage(void)
  * etc.).
  *
  * @param fd The file descriptor to the device.
+ * @param type The type of event (for making a signal dictionary entry).
  * @param axis The axis identifier (e.g. ABS_X).
  */
-static void print_absdata(int fd, int axis)
+static void print_absdata(int fd, int type, int axis)
 {
 	int abs[6] = {0};
 	int k;
+	struct dict_entry * entry = dict_add_or_get(type, axis);
 
 	ioctl(fd, EVIOCGABS(axis), abs);
 	for (k = 0; k < 6; k++)
 		if ((k < 3) || abs[k])
 			printf("      %s %6d\n", absval[k], abs[k]);
+
+	new_signal(entry, type, axis, &abs[1], &abs[2]);
 }
 
 static void print_repdata(int fd)
@@ -1055,6 +1132,13 @@ static int print_device_info(int fd)
 		return 1;
 	}
 
+	dev = mpr_dev_new(/*name*/"evtest", 0);/*webmapper seems to have problems with spaces in names, so as a stopgap for now I'm just using "evtest"*/
+
+	do {
+		mpr_dev_poll(dev, 30);
+	}
+	while(!mpr_dev_get_is_ready(dev));
+
 	printf("Input driver version is %d.%d.%d\n",
 		version >> 16, (version >> 8) & 0xff, version & 0xff);
 
@@ -1086,7 +1170,7 @@ static int print_device_info(int fd)
 						printf("    Event code %d (%s)\n", code, codename(type, code));
 					}
 					if (type == EV_ABS)
-						print_absdata(fd, code);
+						print_absdata(fd, type, code);
 				}
 		}
 	}
@@ -1119,15 +1203,19 @@ static int print_events(int fd)
 {
 	struct input_event ev[64];
 	int i, rd;
-	fd_set rdfs;
-
-	FD_ZERO(&rdfs);
-	FD_SET(fd, &rdfs);
+	int timeout_msecs = 30;
+	struct pollfd pfd;
+	pfd.fd = fd;
+	pfd.events = POLLIN|POLLRDNORM|POLLRDBAND|POLLPRI;
+	pfd.revents = 0;
 
 	while (!stop) {
-		select(fd + 1, &rdfs, NULL, NULL, NULL);
 		if (stop)
 			break;
+		if (poll(&pfd, 1, 30) == 0) {
+			mpr_dev_poll(dev, 0);
+			continue;
+		}
 		rd = read(fd, ev, sizeof(ev));
 
 		if (rd < (int) sizeof(struct input_event)) {
@@ -1138,9 +1226,12 @@ static int print_events(int fd)
 
 		for (i = 0; i < rd / sizeof(struct input_event); i++) {
 			unsigned int type, code;
+			struct dict_entry * entry;
+			int multitouch;
 
 			type = ev[i].type;
 			code = ev[i].code;
+			multitouch = ABS_MT_TOUCH_MAJOR <= code && code <= ABS_MT_TOOL_Y;
 
 			printf("Event: time %ld.%06ld, ", ev[i].input_event_sec, ev[i].input_event_usec);
 
@@ -1152,16 +1243,28 @@ static int print_events(int fd)
 				else
 					printf("-------------- %s ------------\n", codename(type, code));
 			} else {
+				const char * tn = typename(type);
+				const char * cn = codename(type, code);
 				printf("type %d (%s), code %d (%s), ",
-					type, typename(type),
-					code, codename(type, code));
+					type, tn,
+					code, cn);
 				if (type == EV_MSC && (code == MSC_RAW || code == MSC_SCAN))
 					printf("value %02x\n", ev[i].value);
 				else
 					printf("value %d\n", ev[i].value);
+
+				if (type == ABS_MT_SLOT) {
+					slot = ev[i].value;
+					continue;
+				}
+				entry = dict_add_or_get(type, code);
+				if (entry->signal == NULL) {
+					new_signal(entry, type, code, 0,0);
+				}
+				mpr_sig_set_value(entry->signal, multitouch ? slot : 0, 1, MPR_INT32, &(ev[i].value));
 			}
 		}
-
+		mpr_dev_poll(dev, 0);
 	}
 
 	ioctl(fd, EVIOCGRAB, (void*)0);
@@ -1249,6 +1352,13 @@ static int do_capture(const char *device, int grab_flag)
 		signal(SIGINT, interrupt_handler);
 		signal(SIGTERM, interrupt_handler);
 	}
+
+	if (dev == NULL) {
+		fprintf(stderr, "Failed to allocate libmapper device\n");
+		goto error;
+	}
+
+	slot = 0;
 
 	free(filename);
 
