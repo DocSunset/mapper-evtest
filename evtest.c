@@ -30,9 +30,8 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  *
- * Should you need to contact me, the author, you can do so either by
- * e-mail - mail your message to <vojtech@ucw.cz>, or by paper mail:
- * Vojtech Pavlik, Simunkova 1594, Prague 8, 182 00 Czech Republic
+ * This fork of evtest with libmapper bindings is currently maintained by
+ * Travis West <travis.west@mail.mcgill.ca>.
  */
 
 #define _GNU_SOURCE /* for asprintf */
@@ -1300,6 +1299,20 @@ static int do_capture(const char *device, int grab_flag)
 {
 	int fd;
 	char *filename = NULL;
+
+	printf(
+"WARNING: this program provides libmapper bindings to linux evdev.\n\
+Anyone connecting to these libmapper devices can see all your\n\
+interactions with the device, regardless of whether this program\n\
+is in the foreground or running in a background process.\n\
+Be careful not to expose sensitive information such as passwords\n\
+if you expose your keyboard and mouse to the network!\n\
+\n\
+This program is distributed in the hope that it will be useful,\n\
+but WITHOUT ANY WARRANTY; without even the implied warranty of\n\
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n\
+GNU General Public License for more details.\n"
+)
 
 	if (!device) {
 		fprintf(stderr, "No device specified, trying to scan all of %s/%s*\n",

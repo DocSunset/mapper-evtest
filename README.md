@@ -1,3 +1,9 @@
+WARNING: this program provides libmapper bindings to linux evdev.  Anyone
+connecting to these libmapper devices can see all your interactions with the
+device, regardless of whether this program is in the foreground or running in a
+background process.  Be careful not to expose sensitive information such as
+passwords if you expose your keyboard and mouse to the network!
+
 evtest — Kernel input device debugging
 ======================================
 
@@ -17,5 +23,4 @@ For more information, see the evtest(1) man page.
 Development
 ==========
 
-Please send patches as merge requests on the GitLab repository:
-https://gitlab.freedesktop.org/libevdev/evtest
+This fork of evtest is maintained by Travis West on github: https://github.com/docsunset/mapper-evtest
