@@ -1311,8 +1311,9 @@ if you expose your keyboard and mouse to the network!\n\
 This program is distributed in the hope that it will be useful,\n\
 but WITHOUT ANY WARRANTY; without even the implied warranty of\n\
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n\
-GNU General Public License for more details.\n"
-)
+GNU General Public License for more details.\n\
+\n"
+);
 
 	if (!device) {
 		fprintf(stderr, "No device specified, trying to scan all of %s/%s*\n",
