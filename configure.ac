@@ -1,5 +1,5 @@
 AC_PREREQ([2.57])
-AC_INIT(evtest,[1.34], [https://gitlab.freedesktop.org/libevdev/evtest/issues], evtest)
+AC_INIT(evtest,[1.35], [https://gitlab.freedesktop.org/libevdev/evtest/issues], evtest)
 AM_INIT_AUTOMAKE([foreign dist-bzip2])
 
 AC_CONFIG_HEADERS(config.h)
