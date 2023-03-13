@@ -15,4 +15,7 @@ if test "x$XMLTO" = "x" || test "x$ASCIIDOC" = "x"; then
 	AC_MSG_WARN([xmlto or asciidoc not found - cannot create man pages without it])
 fi
 
+PKG_PROG_PKG_CONFIG
+PKG_CHECK_MODULES([libmapper], [libmapper >= 2.3.0])
+
 AC_OUTPUT([Makefile])

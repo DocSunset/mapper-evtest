@@ -1,3 +1,5 @@
+LIBS += @libmapper_LIBS@
+CFLAGS += @libmapper_CFLAGS@
 
 bin_PROGRAMS = evtest
 man_pages_src = evtest.txt
